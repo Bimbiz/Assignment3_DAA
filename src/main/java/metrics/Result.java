@@ -8,8 +8,6 @@ import java.util.List;
  * Stores the results of an MST algorithm execution.
  * Includes MST edges, total cost, operation count, execution time, and validation status.
  *
- * @author Assignment 3 - MST
- * @version 1.0
  */
 public class Result {
     private final String algorithmName;

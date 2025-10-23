@@ -8,8 +8,6 @@ import java.util.*;
  *
  * Provides both edge list (for Kruskal's) and adjacency list (for Prim's).
  *
- * @author Assignment 3 - MST
- * @version 1.0
  */
 public class Graph {
     private final int vertices;

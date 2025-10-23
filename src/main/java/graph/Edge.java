@@ -4,8 +4,6 @@ package graph;
  * Represents an edge in the transportation network.
  * Each edge connects two districts with an associated construction cost.
  *
- * @author Assignment 3 - MST
- * @version 1.0
  */
 public class Edge implements Comparable<Edge> {
     private final int source;

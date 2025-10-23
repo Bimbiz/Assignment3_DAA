@@ -10,8 +10,6 @@ package algorithms;
  *
  * Space Complexity: O(n)
  *
- * @author Assignment 3 - MST
- * @version 1.0
  */
 public class UnionFind {
     private final int[] parent;
