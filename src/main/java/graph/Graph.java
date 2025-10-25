@@ -2,56 +2,70 @@ package graph;
 
 import java.util.*;
 
-/**
- * Represents an undirected weighted graph for the city transportation network.
- * This implementation supports both Prim's and Kruskal's algorithms.
- *
- * Provides both edge list (for Kruskal's) and adjacency list (for Prim's).
- *
- */
 public class Graph {
     private final int vertices;
     private final List<Edge> edges;
     private final List<List<Edge>> adjacencyList;
     private String name;
     private String description;
+    private int graphId;
 
-    /**
-     * Creates a new graph with the specified number of vertices.
-     * @param vertices Number of districts in the city
-     */
+    private final List<String> nodeNames;                    // Index to name mapping
+    private final Map<String, Integer> nodeIndexMap;         // Name to index mapping
+
     public Graph(int vertices) {
+        this(vertices, null, null, -1);
+    }
+
+    public Graph(List<String> nodeNames, String name, String description, int graphId) {
+        this(nodeNames.size(), name, description, graphId);
+
+        for (int i = 0; i < nodeNames.size(); i++) {
+            String nodeName = nodeNames.get(i);
+            this.nodeNames.set(i, nodeName);
+            this.nodeIndexMap.put(nodeName, i);
+        }
+    }
+
+    private Graph(int vertices, String name, String description, int graphId) {
         if (vertices <= 0) {
             throw new IllegalArgumentException("Number of vertices must be positive");
         }
         this.vertices = vertices;
         this.edges = new ArrayList<>();
         this.adjacencyList = new ArrayList<>(vertices);
+        this.name = name;
+        this.description = description;
+        this.graphId = graphId;
 
+        this.nodeNames = new ArrayList<>(vertices);
+        this.nodeIndexMap = new HashMap<>();
         for (int i = 0; i < vertices; i++) {
             adjacencyList.add(new ArrayList<>());
+            nodeNames.add(String.valueOf(i));
+            nodeIndexMap.put(String.valueOf(i), i);
         }
     }
 
-    /**
-     * Creates a graph with name and description.
-     * @param vertices Number of vertices
-     * @param name Name of the graph
-     * @param description Description of the graph
-     */
-    public Graph(int vertices, String name, String description) {
-        this(vertices);
-        this.name = name;
-        this.description = description;
+    public void addEdge(int source, int destination, int weight) {
+        String fromNode = nodeNames.get(source);
+        String toNode = nodeNames.get(destination);
+        addEdge(source, destination, weight, fromNode, toNode);
     }
 
-    /**
-     * Adds an undirected edge to the graph.
-     * @param source Source vertex
-     * @param destination Destination vertex
-     * @param weight Edge weight (construction cost)
-     */
-    public void addEdge(int source, int destination, int weight) {
+    public void addEdge(String fromNode, String toNode, int weight) {
+        Integer sourceIdx = nodeIndexMap.get(fromNode);
+        Integer destIdx = nodeIndexMap.get(toNode);
+
+        if (sourceIdx == null || destIdx == null) {
+            throw new IllegalArgumentException("Node name not found: " +
+                    (sourceIdx == null ? fromNode : toNode));
+        }
+
+        addEdge(sourceIdx, destIdx, weight, fromNode, toNode);
+    }
+
+    private void addEdge(int source, int destination, int weight, String fromNode, String toNode) {
         if (source < 0 || source >= vertices || destination < 0 || destination >= vertices) {
             throw new IllegalArgumentException("Invalid vertex index");
         }
@@ -62,27 +76,17 @@ public class Graph {
             throw new IllegalArgumentException("Self-loops are not allowed");
         }
 
-        Edge edge = new Edge(source, destination, weight);
+        Edge edge = new Edge(source, destination, weight, fromNode, toNode);
         edges.add(edge);
 
-        // Since the graph is undirected, add to both adjacency lists
         adjacencyList.get(source).add(edge);
-        adjacencyList.get(destination).add(new Edge(destination, source, weight));
+        adjacencyList.get(destination).add(new Edge(destination, source, weight, toNode, fromNode));
     }
 
-    /**
-     * Gets all edges in the graph (used by Kruskal's algorithm).
-     * @return List of all edges
-     */
     public List<Edge> getEdges() {
         return new ArrayList<>(edges);
     }
 
-    /**
-     * Gets all edges adjacent to a specific vertex (used by Prim's algorithm).
-     * @param vertex The vertex
-     * @return List of adjacent edges
-     */
     public List<Edge> getAdjacentEdges(int vertex) {
         if (vertex < 0 || vertex >= vertices) {
             throw new IllegalArgumentException("Invalid vertex index");
@@ -90,60 +94,50 @@ public class Graph {
         return new ArrayList<>(adjacencyList.get(vertex));
     }
 
-    /**
-     * Gets the number of vertices in the graph.
-     * @return number of vertices
-     */
     public int getVertices() {
         return vertices;
     }
 
-    /**
-     * Gets the number of edges in the graph.
-     * @return number of edges
-     */
     public int getEdgeCount() {
         return edges.size();
     }
 
-    /**
-     * Gets the graph name.
-     * @return graph name
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * Gets the graph description.
-     * @return graph description
-     */
     public String getDescription() {
         return description;
     }
 
-    /**
-     * Sets the graph name.
-     * @param name graph name
-     */
+    public int getGraphId() {
+        return graphId;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
 
-    /**
-     * Sets the graph description.
-     * @param description graph description
-     */
     public void setDescription(String description) {
         this.description = description;
     }
 
-    /**
-     * Checks if the graph is connected using BFS.
-     * A connected graph means all vertices are reachable from any vertex.
-     *
-     * @return true if all vertices are reachable from vertex 0
-     */
+    public void setGraphId(int graphId) {
+        this.graphId = graphId;
+    }
+
+    public String getNodeName(int index) {
+        return nodeNames.get(index);
+    }
+
+    public Integer getNodeIndex(String name) {
+        return nodeIndexMap.get(name);
+    }
+
+    public List<String> getNodeNames() {
+        return new ArrayList<>(nodeNames);
+    }
+
     public boolean isConnected() {
         if (vertices == 0) return true;
         if (edges.isEmpty()) return vertices == 1;
@@ -169,10 +163,6 @@ public class Graph {
         return visitedCount == vertices;
     }
 
-    /**
-     * Counts the number of connected components in the graph.
-     * @return number of connected components
-     */
     public int countComponents() {
         boolean[] visited = new boolean[vertices];
         int components = 0;
@@ -180,7 +170,6 @@ public class Graph {
         for (int v = 0; v < vertices; v++) {
             if (!visited[v]) {
                 components++;
-                // BFS from this vertex
                 Queue<Integer> queue = new LinkedList<>();
                 queue.offer(v);
                 visited[v] = true;
@@ -201,12 +190,7 @@ public class Graph {
         return components;
     }
 
-    /**
-     * Validates the graph structure.
-     * @return true if graph is valid
-     */
     public boolean validate() {
-        // Check for negative weights
         for (Edge edge : edges) {
             if (edge.getWeight() < 0) {
                 System.err.println("Invalid graph: negative edge weight found");
@@ -214,7 +198,6 @@ public class Graph {
             }
         }
 
-        // Check for invalid vertex indices
         for (Edge edge : edges) {
             if (edge.getSource() < 0 || edge.getSource() >= vertices ||
                     edge.getDestination() < 0 || edge.getDestination() >= vertices) {
@@ -232,12 +215,15 @@ public class Graph {
         if (name != null) {
             sb.append("Graph: ").append(name).append("\n");
         }
+        if (graphId >= 0) {
+            sb.append("ID: ").append(graphId).append("\n");
+        }
         if (description != null) {
             sb.append("Description: ").append(description).append("\n");
         }
+        sb.append(String.format("Nodes: %s\n", nodeNames));
         sb.append(String.format("Vertices: %d, Edges: %d\n", vertices, edges.size()));
-        sb.append(String.format("Connected: %s, Components: %d\n",
-                isConnected() ? "Yes" : "No", countComponents()));
+        sb.append(String.format("Connected: %s\n", isConnected() ? "Yes" : "No"));
         sb.append("Edge List:\n");
         for (Edge edge : edges) {
             sb.append("  ").append(edge).append("\n");

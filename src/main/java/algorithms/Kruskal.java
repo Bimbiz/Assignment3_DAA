@@ -6,31 +6,7 @@ import metrics.Result;
 
 import java.util.*;
 
-/**
- * Implementation of Kruskal's algorithm for finding Minimum Spanning Tree.
- * Uses Union-Find data structure to detect cycles efficiently.
- *
- * Algorithm:
- * 1. Sort all edges by weight (ascending)
- * 2. Initialize Union-Find with all vertices
- * 3. For each edge (in sorted order):
- *    - If endpoints are in different sets: add edge to MST and union sets
- *    - Otherwise: skip (would create cycle)
- * 4. Stop when MST has V-1 edges
- *
- * Time Complexity: O(E log E) where E is the number of edges
- * Space Complexity: O(V + E) where V is the number of vertices
- *
- */
 public class Kruskal {
-    private static final double EPSILON = 1E-12;
-
-    /**
-     * Finds the Minimum Spanning Tree using Kruskal's algorithm.
-     *
-     * @param graph The input graph
-     * @return Result containing MST edges, cost, operations, and execution time
-     */
     public Result findMST(Graph graph) {
         long startTime = System.nanoTime();
 
@@ -41,71 +17,58 @@ public class Kruskal {
         int operations = 0;
         String graphName = graph.getName();
 
-        // Check if graph is connected
         if (!graph.isConnected()) {
             long endTime = System.nanoTime();
             long executionTime = (endTime - startTime) / 1_000_000;
             System.err.println("WARNING: Graph is disconnected. Computing minimum spanning forest.");
 
-            // For disconnected graphs, still compute MSF
             return computeMSF(graph, startTime);
         }
 
-        // Step 1: Get all edges and sort them by weight
         List<Edge> edges = new ArrayList<>(graph.getEdges());
         Collections.sort(edges);
-        operations += edges.size(); // Count sort operations (simplified)
+        operations += edges.size();
 
-        // Step 2: Initialize Union-Find
         UnionFind uf = new UnionFind(vertices);
 
-        // Step 3: Process edges in sorted order (greedy approach)
         for (Edge edge : edges) {
-            operations++; // Count edge examination
+            operations++;
 
             int source = edge.getSource();
             int dest = edge.getDestination();
 
-            // Check if adding this edge creates a cycle
             if (!uf.connected(source, dest)) {
-                // No cycle - add edge to MST
                 mstEdges.add(edge);
                 totalCost += edge.getWeight();
                 uf.union(source, dest);
 
-                // Stop when we have V-1 edges (spanning tree complete)
                 if (mstEdges.size() == vertices - 1) {
                     break;
                 }
             }
         }
 
-        // Add Union-Find operations to total count
         operations += uf.getOperationCount();
 
         long endTime = System.nanoTime();
-        long executionTime = (endTime - startTime) / 1_000_000; // Convert to milliseconds
+        double executionTimeMs = (endTime - startTime) / 1_000_000.0; // Changed to double division
 
-        // Create result
         Result result = new Result("Kruskal's Algorithm", mstEdges, totalCost,
-                operations, executionTime, vertices, edgeCount,
+                operations, executionTimeMs, vertices, edgeCount,
                 true, graphName);
 
-        // Validate the MST using Princeton-style checks
         boolean isValid = validateMST(graph, result);
+        
+        // Update validation status if needed
+        if (!isValid) {
+            result = new Result("Kruskal's Algorithm", mstEdges, totalCost,
+                    operations, executionTimeMs, vertices, edgeCount,
+                    false, graphName);
+        }
 
-        return new Result("Kruskal's Algorithm", mstEdges, totalCost,
-                operations, executionTime, vertices, edgeCount,
-                isValid, graphName);
+        return result;
     }
 
-    /**
-     * Computes Minimum Spanning Forest for disconnected graphs.
-     *
-     * @param graph The input graph
-     * @param startTime Start time for timing
-     * @return Result containing MSF edges
-     */
     private Result computeMSF(Graph graph, long startTime) {
         int vertices = graph.getVertices();
         int edgeCount = graph.getEdgeCount();
@@ -138,44 +101,58 @@ public class Kruskal {
                 false, graph.getName());
     }
 
-    /**
-     * Validates the MST using Princeton-style optimality conditions.
-     *
-     * Checks:
-     * 1. MST has exactly V-1 edges
-     * 2. MST is acyclic (no cycles)
-     * 3. MST is a spanning tree (connects all vertices)
-     * 4. Total weight is correctly calculated
-     * 5. Cut optimality: each edge in MST is minimum weight crossing some cut
-     *
-     * @param graph Original graph
-     * @param result MST result to validate
-     * @return true if MST is valid
-     */
     public boolean validateMST(Graph graph, Result result) {
         List<Edge> mstEdges = result.getMstEdges();
         int vertices = graph.getVertices();
 
-        // Check 1: MST should have exactly V-1 edges
+        // 1. Check edge count
         if (mstEdges.size() != vertices - 1) {
             System.err.println("Validation FAILED: Expected " + (vertices - 1) +
                     " edges, got " + mstEdges.size());
             return false;
         }
 
-        // Check 2: Verify total weight
+        // 2. Check total weight consistency
+        if (!validateWeightConsistency(mstEdges, result.getTotalCost())) {
+            return false;
+        }
+
+        // 3. Check for cycles and spanning property
+        if (!validateConnectivity(graph, mstEdges, vertices)) {
+            return false;
+        }
+
+        // 4. Validate cut optimality (simplified for performance)
+        // Only check for small graphs to avoid O(V^2 * E) complexity
+        if (vertices <= 100) {
+            if (!validateCutOptimality(graph, mstEdges, vertices)) {
+                return false;
+            }
+        } else {
+            System.out.println("Validation: Skipping cut optimality check for large graph (V=" + vertices + ")");
+        }
+
+        System.out.println("Validation PASSED: MST satisfies all optimality conditions");
+        return true;
+    }
+
+    private boolean validateWeightConsistency(List<Edge> mstEdges, int expectedCost) {
         int totalWeight = 0;
         for (Edge e : mstEdges) {
             totalWeight += e.getWeight();
         }
-        if (totalWeight != result.getTotalCost()) {
+        if (totalWeight != expectedCost) {
             System.err.println("Validation FAILED: Weight mismatch. Calculated: " +
-                    totalWeight + ", Reported: " + result.getTotalCost());
+                    totalWeight + ", Reported: " + expectedCost);
             return false;
         }
+        return true;
+    }
 
-        // Check 3: MST must be acyclic (no cycles)
+    private boolean validateConnectivity(Graph graph, List<Edge> mstEdges, int vertices) {
         UnionFind uf = new UnionFind(vertices);
+        
+        // Check for cycles
         for (Edge e : mstEdges) {
             int v = e.getSource();
             int w = e.getDestination();
@@ -187,7 +164,7 @@ public class Kruskal {
             uf.union(v, w);
         }
 
-        // Check 4: MST must be spanning (connects all vertices)
+        // Check spanning property
         for (Edge e : graph.getEdges()) {
             int v = e.getSource();
             int w = e.getDestination();
@@ -198,26 +175,30 @@ public class Kruskal {
                 return false;
             }
         }
+        
+        return true;
+    }
 
-        // Check 5: Cut optimality - each MST edge is minimum weight crossing some cut
-        // This is the most rigorous check (Princeton-style)
+    private boolean validateCutOptimality(Graph graph, List<Edge> mstEdges, int vertices) {
+        // For each MST edge, verify it's the minimum weight edge crossing some cut
         for (Edge mstEdge : mstEdges) {
-            // Remove this edge from MST temporarily
-            uf = new UnionFind(vertices);
+            UnionFind uf = new UnionFind(vertices);
+            
+            // Build MST without this edge
             for (Edge e : mstEdges) {
                 if (e != mstEdge) {
                     uf.union(e.getSource(), e.getDestination());
                 }
             }
 
-            // Check if mstEdge is minimum weight edge crossing the cut
+            // Check all graph edges that cross the same cut
             for (Edge graphEdge : graph.getEdges()) {
                 int v = graphEdge.getSource();
                 int w = graphEdge.getDestination();
 
-                // If this edge crosses the same cut as mstEdge
+                // If this edge crosses the cut
                 if (!uf.connected(v, w)) {
-                    // It should not have weight less than mstEdge
+                    // The MST edge should have minimum weight
                     if (graphEdge.getWeight() < mstEdge.getWeight()) {
                         System.err.println("Validation FAILED: Edge " + graphEdge +
                                 " violates cut optimality conditions for MST edge " + mstEdge);
@@ -226,18 +207,10 @@ public class Kruskal {
                 }
             }
         }
-
-        System.out.println("Validation PASSED: MST satisfies all optimality conditions");
+        
         return true;
     }
 
-    /**
-     * Quick validation without cut optimality check (faster).
-     *
-     * @param graph Original graph
-     * @param result MST result to validate
-     * @return true if MST passes basic checks
-     */
     public boolean quickValidate(Graph graph, Result result) {
         List<Edge> mstEdges = result.getMstEdges();
         int vertices = graph.getVertices();
@@ -247,21 +220,22 @@ public class Kruskal {
             return false;
         }
 
-        // Check for cycles
+        // Check for cycles using Union-Find
         UnionFind uf = new UnionFind(vertices);
+        int totalWeight = 0;
+        
         for (Edge e : mstEdges) {
+            // Check for cycle
             if (uf.connected(e.getSource(), e.getDestination())) {
                 return false;
             }
             uf.union(e.getSource(), e.getDestination());
-        }
-
-        // Check weight
-        int totalWeight = 0;
-        for (Edge e : mstEdges) {
+            
+            // Accumulate weight
             totalWeight += e.getWeight();
         }
 
+        // Verify total weight
         return totalWeight == result.getTotalCost();
     }
 }

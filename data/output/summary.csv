@@ -1,0 +1,4 @@
+Metric,Prim Average,Kruskal Average,Difference
+Execution Time (ms),0.43,0.21,0.21
+Operations,2989,7367,4378
+MST Cost,68607,68607,0
