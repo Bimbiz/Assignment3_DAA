@@ -66,13 +66,13 @@ public class Prim {
 
         // Create result and validate
         Result result = new Result("Prim's Algorithm", mstEdges, totalCost,
-                operations, executionTimeMs, vertices, edgeCount,
+                operations, (long) executionTimeMs, vertices, edgeCount,
                 true, graphName);
 
         boolean isValid = validateMST(graph, result);
 
         return new Result("Prim's Algorithm", mstEdges, totalCost,
-                operations, executionTime, vertices, edgeCount,
+                operations, (long) executionTimeMs, vertices, edgeCount,
                 isValid, graphName);
     }
 

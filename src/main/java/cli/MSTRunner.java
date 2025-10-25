@@ -93,10 +93,10 @@ public class MSTRunner {
         boolean sameEdgeCount = primResult.getMstEdges().size() == kruskalResult.getMstEdges().size();
 
         System.out.println(String.format("%-30s: %s", "Same MST Cost",
-                sameCost ? "YES (" + primResult.getTotalCost() + ")" : "✗ NO"));
+                sameCost ? "YES (" + primResult.getTotalCost() + ")" : "NO"));
 
         System.out.println(String.format("%-30s: %s", "Same Edge Count",
-                sameEdgeCount ? "YES (" + primResult.getMstEdges().size() + ")" : "✗ NO"));
+                sameEdgeCount ? "YES (" + primResult.getMstEdges().size() + ")" : "NO"));
 
         System.out.println(String.format("%-30s: Prim=%d, Kruskal=%d",
                 "Operations", primResult.getOperations(), kruskalResult.getOperations()));
@@ -125,7 +125,7 @@ public class MSTRunner {
         }
 
         System.out.println(String.format("%-30s: %s", "Both Valid",
-                (primResult.isValid() && kruskalResult.isValid()) ? "✓ YES" : "✗ NO"));
+                (primResult.isValid() && kruskalResult.isValid()) ? "YES" : "NO"));
     }
 
     private static void printFinalSummary(List<Result> primResults, List<Result> kruskalResults) {

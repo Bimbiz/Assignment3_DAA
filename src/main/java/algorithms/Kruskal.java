@@ -51,7 +51,7 @@ public class Kruskal {
         operations += uf.getOperationCount();
 
         long endTime = System.nanoTime();
-        double executionTimeMs = (endTime - startTime) / 1_000_000.0; // Changed to double division
+        long executionTimeMs = (endTime - startTime) / 1_000_000;
 
         Result result = new Result("Kruskal's Algorithm", mstEdges, totalCost,
                 operations, executionTimeMs, vertices, edgeCount,
@@ -62,7 +62,7 @@ public class Kruskal {
         // Update validation status if needed
         if (!isValid) {
             result = new Result("Kruskal's Algorithm", mstEdges, totalCost,
-                    operations, executionTimeMs, vertices, edgeCount,
+                    operations, (long) executionTimeMs, vertices, edgeCount,
                     false, graphName);
         }
 

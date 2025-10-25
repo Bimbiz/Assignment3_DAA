@@ -11,10 +11,8 @@ public class CSVExporter {
 
     public static void exportResults(List<Result> results, String filepath) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filepath))) {
-            // Write header
             writer.println(Result.getCSVHeader());
 
-            // Write data rows
             for (Result result : results) {
                 writer.println(result.toCSVLine());
             }
@@ -66,78 +64,68 @@ public class CSVExporter {
         System.out.println("Comparison CSV exported to: " + filepath);
     }
 
-    public static void exportComparison(Result primResult, Result kruskalResult, String filename) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
-            writer.println("Metric,Prim,Kruskal,Difference");
-            
-            writer.printf("Execution Time (ms),%.3f,%.3f,%.3f%n",  // Updated format
-                    primResult.getExecutionTimeMs(),
-                    kruskalResult.getExecutionTimeMs(),
-                    Math.abs(primResult.getExecutionTimeMs() - kruskalResult.getExecutionTimeMs()));
-            
-            writer.printf("Operations,%d,%d,%d%n",
-                    primResult.getOperationCount(),
-                    kruskalResult.getOperationCount(),
-                    Math.abs(primResult.getOperationCount() - kruskalResult.getOperationCount()));
-            
-            writer.printf("MST Cost,%d,%d,%d%n",
-                    primResult.getTotalCost(),
-                    kruskalResult.getTotalCost(),
-                    Math.abs(primResult.getTotalCost() - kruskalResult.getTotalCost()));
-
-            System.out.println("Comparison exported to: " + filename);
-        } catch (IOException e) {
-            System.err.println("Error exporting comparison: " + e.getMessage());
-        }
-    }
-
-    public static void exportSummary(List<Result> primResults, List<Result> kruskalResults, String filename) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+    public static void exportSummary(List<Result> allResults, String filepath) throws IOException {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filepath))) {
             writer.println("Metric,Prim Average,Kruskal Average,Difference");
-            
+
+            // Separate Prim and Kruskal results
+            List<Result> primResults = new java.util.ArrayList<>();
+            List<Result> kruskalResults = new java.util.ArrayList<>();
+
+            for (Result r : allResults) {
+                if (r.getAlgorithmName().contains("Prim")) {
+                    primResults.add(r);
+                } else if (r.getAlgorithmName().contains("Kruskal")) {
+                    kruskalResults.add(r);
+                }
+            }
+
+            if (primResults.isEmpty() || kruskalResults.isEmpty()) {
+                writer.println("Insufficient data for comparison");
+                return;
+            }
+
+            // Calculate averages
             double primAvgTime = primResults.stream()
-                    .mapToDouble(Result::getExecutionTimeMs)
+                    .mapToLong(Result::getExecutionTimeMs)
                     .average()
-                    .orElse(0.0);
-            
+                    .orElse(0);
+
             double kruskalAvgTime = kruskalResults.stream()
-                    .mapToDouble(Result::getExecutionTimeMs)
+                    .mapToLong(Result::getExecutionTimeMs)
                     .average()
-                    .orElse(0.0);
-            
-            writer.printf("Execution Time (ms),%.3f,%.3f,%.3f%n",  // Updated format
-                    primAvgTime, kruskalAvgTime, Math.abs(primAvgTime - kruskalAvgTime));
-            
+                    .orElse(0);
+
             double primAvgOps = primResults.stream()
-                    .mapToInt(Result::getOperationCount)
+                    .mapToInt(Result::getOperations)
                     .average()
-                    .orElse(0.0);
-            
+                    .orElse(0);
+
             double kruskalAvgOps = kruskalResults.stream()
-                    .mapToInt(Result::getOperationCount)
+                    .mapToInt(Result::getOperations)
                     .average()
-                    .orElse(0.0);
-            
-            writer.printf("Operations,%.0f,%.0f,%.0f%n",
-                    primAvgOps, kruskalAvgOps, Math.abs(primAvgOps - kruskalAvgOps));
-            
+                    .orElse(0);
+
             double primAvgCost = primResults.stream()
                     .mapToInt(Result::getTotalCost)
                     .average()
-                    .orElse(0.0);
-            
+                    .orElse(0);
+
             double kruskalAvgCost = kruskalResults.stream()
                     .mapToInt(Result::getTotalCost)
                     .average()
-                    .orElse(0.0);
-            
-            writer.printf("MST Cost,%.0f,%.0f,%.0f%n",
-                    primAvgCost, kruskalAvgCost, Math.abs(primAvgCost - kruskalAvgCost));
+                    .orElse(0);
 
-            System.out.println("Summary exported to: " + filename);
-        } catch (IOException e) {
-            System.err.println("Error exporting summary: " + e.getMessage());
+            // Write summary
+            writer.println(String.format("Execution Time (ms),%.2f,%.2f,%.2f",
+                    primAvgTime, kruskalAvgTime, Math.abs(primAvgTime - kruskalAvgTime)));
+            writer.println(String.format("Operations,%.0f,%.0f,%.0f",
+                    primAvgOps, kruskalAvgOps, Math.abs(primAvgOps - kruskalAvgOps)));
+            writer.println(String.format("MST Cost,%.0f,%.0f,%.0f",
+                    primAvgCost, kruskalAvgCost, Math.abs(primAvgCost - kruskalAvgCost)));
         }
+
+        System.out.println("Summary CSV exported to: " + filepath);
     }
 
     public static void exportPerformanceBySize(List<Result> results, String filepath) throws IOException {
@@ -152,7 +140,6 @@ public class CSVExporter {
                 grouped.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(r);
             }
 
-            // Write grouped data
             grouped.forEach((key, group) -> {
                 String[] parts = key.split("-");
                 int vertices = Integer.parseInt(parts[0]);

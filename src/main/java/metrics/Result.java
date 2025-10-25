@@ -8,23 +8,29 @@ public class Result {
     private final String algorithmName;
     private final List<Edge> mstEdges;
     private final int totalCost;
-    private final int operationCount;
-    private final double executionTimeMs;  // Changed from long to double
-    private final int vertices;
-    private final int edges;
+    private final int operations;
+    private final long executionTimeMs;
+    private final int graphVertices;
+    private final int graphEdges;
     private final boolean isValid;
     private final String graphName;
 
     public Result(String algorithmName, List<Edge> mstEdges, int totalCost,
-                  int operationCount, double executionTimeMs, int vertices,  // Changed parameter type
-                  int edges, boolean isValid, String graphName) {
+                  int operations, long executionTimeMs, int graphVertices, int graphEdges) {
+        this(algorithmName, mstEdges, totalCost, operations, executionTimeMs,
+                graphVertices, graphEdges, true, null);
+    }
+
+    public Result(String algorithmName, List<Edge> mstEdges, int totalCost,
+                  int operations, long executionTimeMs, int graphVertices,
+                  int graphEdges, boolean isValid, String graphName) {
         this.algorithmName = algorithmName;
         this.mstEdges = new ArrayList<>(mstEdges);
         this.totalCost = totalCost;
-        this.operationCount = operationCount;
+        this.operations = operations;
         this.executionTimeMs = executionTimeMs;
-        this.vertices = vertices;
-        this.edges = edges;
+        this.graphVertices = graphVertices;
+        this.graphEdges = graphEdges;
         this.isValid = isValid;
         this.graphName = graphName;
     }
@@ -41,20 +47,20 @@ public class Result {
         return totalCost;
     }
 
-    public int getOperationCount() {
-        return operationCount;
+    public int getOperations() {
+        return operations;
     }
 
-    public double getExecutionTimeMs() {  // Changed return type
+    public long getExecutionTimeMs() {
         return executionTimeMs;
     }
 
-    public int getVertices() {
-        return vertices;
+    public int getGraphVertices() {
+        return graphVertices;
     }
 
-    public int getEdges() {
-        return edges;
+    public int getGraphEdges() {
+        return graphEdges;
     }
 
     public boolean isValid() {
@@ -65,10 +71,46 @@ public class Result {
         return graphName;
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s: Cost=%d, Edges=%d, Operations=%d, Time=%.3fms, Valid=%s",
-                algorithmName, totalCost, mstEdges.size(), operationCount, 
-                executionTimeMs, isValid);
+    public void printSummary() {
+        System.out.println(algorithmName.toUpperCase() + " RESULTS");
+        if (graphName != null) {
+            System.out.println("Graph: " + graphName);
+        }
+        System.out.println(String.format("%-25s: %d vertices, %d edges",
+                "Original Graph", graphVertices, graphEdges));
+        System.out.println(String.format("%-25s: %d", "MST Total Cost", totalCost));
+        System.out.println(String.format("%-25s: %d (expected: %d)",
+                "MST Edge Count", mstEdges.size(), graphVertices - 1));
+        System.out.println(String.format("%-25s: %d", "Operations Performed", operations));
+        System.out.println(String.format("%-25s: %d ms", "Execution Time", executionTimeMs));
+        System.out.println(String.format("%-25s: %s", "Validation Status",
+                isValid ? "VALID" : "✗ INVALID"));
+        System.out.println("\nMST Edges:");
+        for (int i = 0; i < mstEdges.size(); i++) {
+            System.out.println(String.format("  [%2d] %s", i + 1, mstEdges.get(i)));
+        }
+    }
+
+    public String getCompactSummary() {
+        return String.format("%s: Cost=%d, Edges=%d, Ops=%d, Time=%dms, Valid=%s",
+                algorithmName, totalCost, mstEdges.size(), operations,
+                executionTimeMs, isValid ? "YES" : "NO");
+    }
+
+    public String toCSVLine() {
+        return String.format("%s,%s,%d,%d,%d,%d,%d,%d,%s",
+                graphName != null ? graphName : "Unknown",
+                algorithmName,
+                graphVertices,
+                graphEdges,
+                totalCost,
+                mstEdges.size(),
+                operations,
+                executionTimeMs,
+                isValid ? "Valid" : "Invalid");
+    }
+
+    public static String getCSVHeader() {
+        return "Graph Name,Algorithm,Vertices,Edges,MST Cost,MST Edges,Operations,Time (ms),Status";
     }
 }

@@ -62,15 +62,15 @@ public class JSONWriter {
         JsonArray edgesArray = new JsonArray();
         for (Edge edge : result.getMstEdges()) {
             JsonObject edgeObj = new JsonObject();
-            edgeObj.addProperty("from", edge.getFromName());
-            edgeObj.addProperty("to", edge.getToName());
+            edgeObj.addProperty("from", edge.getFromNode());
+            edgeObj.addProperty("to", edge.getToNode());
             edgeObj.addProperty("weight", edge.getWeight());
             edgesArray.add(edgeObj);
         }
         
         obj.add("mst_edges", edgesArray);
         obj.addProperty("total_cost", result.getTotalCost());
-        obj.addProperty("operations_count", result.getOperationCount());
+        obj.addProperty("operations_count", result.getOperations());
         obj.addProperty("execution_time_ms", 
                     Math.round(result.getExecutionTimeMs() * 1000.0) / 1000.0); // Round to 3 decimal places
         

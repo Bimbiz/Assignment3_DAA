@@ -17106,7 +17106,7 @@
       "total_cost": 22220,
       "mst_edge_count": 646,
       "operations": 3813,
-      "execution_time_ms": 1,
+      "execution_time_ms": 0,
       "valid": false,
       "mst_edges": [
         {
@@ -23588,7 +23588,7 @@
       "total_cost": 25409,
       "mst_edge_count": 677,
       "operations": 3762,
-      "execution_time_ms": 1,
+      "execution_time_ms": 0,
       "valid": false,
       "mst_edges": [
         {
@@ -46834,7 +46834,7 @@
       "total_cost": 36930,
       "mst_edge_count": 772,
       "operations": 2733,
-      "execution_time_ms": 1,
+      "execution_time_ms": 0,
       "valid": false,
       "mst_edges": [
         {
@@ -79083,7 +79083,7 @@
       "total_cost": 23145,
       "mst_edge_count": 634,
       "operations": 8929,
-      "execution_time_ms": 0,
+      "execution_time_ms": 1,
       "valid": false,
       "mst_edges": [
         {
@@ -86595,7 +86595,7 @@
       "total_cost": 24594,
       "mst_edge_count": 864,
       "operations": 16127,
-      "execution_time_ms": 0,
+      "execution_time_ms": 1,
       "valid": true,
       "mst_edges": [
         {
@@ -98712,7 +98712,7 @@
       "total_cost": 423287,
       "mst_edge_count": 1555,
       "operations": 32205,
-      "execution_time_ms": 2,
+      "execution_time_ms": 1,
       "valid": true,
       "mst_edges": [
         {
@@ -106498,7 +106498,7 @@
       "total_cost": 485859,
       "mst_edge_count": 1637,
       "operations": 12064,
-      "execution_time_ms": 1,
+      "execution_time_ms": 2,
       "valid": true,
       "mst_edges": [
         {
@@ -122890,7 +122890,7 @@
       "total_cost": 736953,
       "mst_edge_count": 1574,
       "operations": 6243,
-      "execution_time_ms": 1,
+      "execution_time_ms": 0,
       "valid": false,
       "mst_edges": [
         {
@@ -130771,7 +130771,7 @@
       "total_cost": 736953,
       "mst_edge_count": 1574,
       "operations": 17385,
-      "execution_time_ms": 1,
+      "execution_time_ms": 0,
       "valid": false,
       "mst_edges": [
         {
@@ -138648,5 +138648,5 @@
     }
   ],
   "total_tests": 56,
-  "timestamp": 1761391378046
+  "timestamp": 1761394476381
 }
